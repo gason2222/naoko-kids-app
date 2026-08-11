@@ -35,12 +35,21 @@ jobs:
           npm ci
           npm run build
 
+      # アプリ2 (app-nazori) のビルド
+      - name: Build app-nazori
+        run: |
+          cd app-nazori
+          npm ci
+          npm run build
+
       # ディレクトリ構造を整えて公開フォルダ (dist_github) を作成
       - name: Prepare public directory
         run: |
           mkdir dist_github
           cp -r app-kusanuki/dist dist_github/app-kusanuki
+          cp -r app-nazori/dist dist_github/app-nazori
           cp index.html dist_github/index.html
+
 
       - name: Setup Pages
         uses: actions/configure-pages@v4
