@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>naoko-kids-app | こどもアプリ集</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    body {
+      font-family: 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', Meiryo, sans-serif;
+      background: linear-gradient(135deg, #a8e6cf 0%, #dcedc1 50%, #ffd3b6 100%);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 40px 20px;
+    }
+    h1 {
+      font-size: 2.2rem;
+      color: #2d6a4f;
+      margin-bottom: 8px;
+      text-shadow: 2px 2px 0 rgba(255,255,255,0.6);
+    }
+    .subtitle {
+      font-size: 1.1rem;
+      color: #52796f;
+      margin-bottom: 40px;
+    }
+    .app-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 24px;
+      width: 100%;
+      max-width: 1000px;
+    }
+    .app-card {
+      background: rgba(255,255,255,0.9);
+      border-radius: 20px;
+      padding: 28px;
+      text-decoration: none;
+      color: #333;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+    }
+    .app-card:hover {
+      transform: translateY(-6px) scale(1.02);
+      box-shadow: 0 12px 32px rgba(0,0,0,0.18);
+    }
+    .app-icon {
+      font-size: 3.5rem;
+      margin-bottom: 16px;
+    }
+    .app-name {
+      font-size: 1.3rem;
+      font-weight: bold;
+      color: #2d6a4f;
+      margin-bottom: 8px;
+    }
+    .app-desc {
+      font-size: 0.95rem;
+      color: #666;
+      line-height: 1.6;
+    }
+    .app-status {
+      margin-top: 12px;
+      font-size: 0.8rem;
+      padding: 4px 12px;
+      border-radius: 20px;
+      font-weight: bold;
+    }
+    .status-ready {
+      background: #d8f3dc;
+      color: #2d6a4f;
+    }
+    .status-soon {
+      background: #eee;
+      color: #999;
+    }
+  </style>
+</head>
+<body>
+  <h1>🎨 こどもアプリ集</h1>
+  <p class="subtitle">タップしてあそぼう！</p>
+
+  <div class="app-grid">
+    <a class="app-card" href="./app-kusanuki/">
+      <div class="app-icon">🌿</div>
+      <div class="app-name">草抜き＆お絵かきモンスター</div>
+      <div class="app-desc">描いた線が生き物になって、草を一緒に抜いてくれるよ！</div>
+      <div class="app-status status-ready">あそべる！</div>
+    </a>
+
+    <a class="app-card" href="./app-nazori/">
+      <div class="app-icon">🌈</div>
+      <div class="app-name">なぞって変身！色のふしぎ文字</div>
+      <div class="app-desc">文字をなぞると、画面が色でいっぱいになるよ！</div>
+      <div class="app-status status-soon">じゅんびちゅう</div>
+    </a>
+
+    <a class="app-card" href="./app-tsunagu/">
+      <div class="app-icon">💬</div>
+      <div class="app-name">コミュニケーション補助</div>
+      <div class="app-desc">色とタップで、きもちを伝えられるよ！</div>
+      <div class="app-status status-soon">じゅんびちゅう</div>
+    </a>
+
+    <a class="app-card" href="./app-garden/">
+      <div class="app-icon">🌱</div>
+      <div class="app-name">文字のめばえガーデン</div>
+      <div class="app-desc">文字を辿ると、お花がニョキニョキ生えてくるよ！</div>
+      <div class="app-status status-soon">じゅんびちゅう</div>
+    </a>
+
+    <a class="app-card" href="./app-dance/">
+      <div class="app-icon">💃</div>
+      <div class="app-name">うごく！お絵かきダンススタジオ</div>
+      <div class="app-desc">描いた線が音楽に合わせて踊りだすよ！</div>
+      <div class="app-status status-soon">じゅんびちゅう</div>
+    </a>
+  </div>
+</body>
+</html>
