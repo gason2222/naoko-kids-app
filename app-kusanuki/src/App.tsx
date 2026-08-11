@@ -72,6 +72,11 @@ function App() {
   const modeRef = useRef<GameMode>('draw')
   const colorRef = useRef<number>(COLORS[0].value)
   const clearedRef = useRef(false)
+  const danceContainerRef = useRef<Container | null>(null)
+  const grassPullingRef = useRef(false)
+  const pullGrassAtRef = useRef<(x: number, y: number) => void>(() => {})
+
+
 
   // ref を同期
   useEffect(() => {
@@ -139,8 +144,9 @@ function App() {
         strokesRef.current.push(stroke)
         drawStroke(stroke)
       } else if (modeRef.current === 'grass') {
-        pullGrassAt(pos.x, pos.y)
+        pullGrassAtRef.current(pos.x, pos.y)
       }
+
     }
 
     const onPointerMove = (e: PointerEvent) => {
@@ -172,8 +178,8 @@ function App() {
     const drawStroke = (stroke: DrawingStroke) => {
       const layer = drawingLayerRef.current
       if (!layer) return
-      // 既存のグラフィックスをクリアして再描画（シンプルな方法）
-      // 代わりに、各ストロークを個別の Graphics として管理
+      // 各ストロークを個別の Graphics として管理
+      // 線の形を保ったまま踊らせるため、ストロークごとに Graphics を作成
       const g = new Graphics()
       g.moveTo(stroke.points[0].x, stroke.points[0].y)
       for (let i = 1; i < stroke.points.length; i++) {
@@ -183,57 +189,6 @@ function App() {
       layer.addChild(g)
     }
 
-    const pullGrassAt = (x: number, y: number) => {
-      const grassList = grassListRef.current
-      for (const grass of grassList) {
-        if (grass.pulled) continue
-        const dist = Math.hypot(grass.x - x, grass.y - y)
-        if (dist < 40) {
-          grass.pulled = true
-          playTone(600 + Math.random() * 200, 0.1, 'triangle', 0.4)
-          // 草を抜くアニメーション
-          gsap.to(grass.graphics, {
-            y: grass.graphics.y - 30,
-            alpha: 0,
-            rotation: (Math.random() - 0.5) * 0.5,
-            duration: 0.3,
-            ease: 'power2.out',
-            onComplete: () => {
-              grass.graphics.destroy()
-            },
-          })
-          // パーティクル（葉っぱが飛び散る）
-          spawnLeafParticles(x, y)
-          setGrassCount((c) => c + 1)
-          break
-        }
-      }
-    }
-
-    const spawnLeafParticles = (x: number, y: number) => {
-      const layer = effectLayerRef.current
-      if (!layer) return
-      for (let i = 0; i < 6; i++) {
-        const leaf = new Graphics()
-        leaf.rect(0, 0, 6, 12)
-        leaf.fill({ color: 0x4caf50 })
-        leaf.pivot.set(3, 6)
-        leaf.position.set(x, y)
-        leaf.rotation = Math.random() * Math.PI * 2
-        layer.addChild(leaf)
-        const angle = Math.random() * Math.PI * 2
-        const dist = 30 + Math.random() * 40
-        gsap.to(leaf, {
-          x: x + Math.cos(angle) * dist,
-          y: y + Math.sin(angle) * dist - 20,
-          rotation: leaf.rotation + (Math.random() - 0.5) * 2,
-          alpha: 0,
-          duration: 0.5 + Math.random() * 0.3,
-          ease: 'power2.out',
-          onComplete: () => leaf.destroy(),
-        })
-      }
-    }
 
     const animate = () => {
       // 草の揺れアニメーション
@@ -243,6 +198,7 @@ function App() {
         grass.graphics.rotation = Math.sin(time * 2 + grass.swayPhase) * 0.08
       }
     }
+
 
     init()
 
@@ -255,8 +211,64 @@ function App() {
     }
   }, [])
 
+  // ===== 草を抜く =====
+  const pullGrassAt = (x: number, y: number) => {
+    const grassList = grassListRef.current
+    for (const grass of grassList) {
+      if (grass.pulled) continue
+      const dist = Math.hypot(grass.x - x, grass.y - y)
+      if (dist < 40) {
+        grass.pulled = true
+        playTone(600 + Math.random() * 200, 0.1, 'triangle', 0.4)
+        // 草を抜くアニメーション
+        gsap.to(grass.graphics, {
+          y: grass.graphics.y - 30,
+          alpha: 0,
+          rotation: (Math.random() - 0.5) * 0.5,
+          duration: 0.3,
+          ease: 'power2.out',
+          onComplete: () => {
+            grass.graphics.destroy()
+          },
+        })
+        // パーティクル（葉っぱが飛び散る）
+        spawnLeafParticles(x, y)
+        setGrassCount((c) => c + 1)
+        break
+      }
+    }
+  }
+  pullGrassAtRef.current = pullGrassAt
+
+
+  const spawnLeafParticles = (x: number, y: number) => {
+    const layer = effectLayerRef.current
+    if (!layer) return
+    for (let i = 0; i < 6; i++) {
+      const leaf = new Graphics()
+      leaf.rect(0, 0, 6, 12)
+      leaf.fill({ color: 0x4caf50 })
+      leaf.pivot.set(3, 6)
+      leaf.position.set(x, y)
+      leaf.rotation = Math.random() * Math.PI * 2
+      layer.addChild(leaf)
+      const angle = Math.random() * Math.PI * 2
+      const dist = 30 + Math.random() * 40
+      gsap.to(leaf, {
+        x: x + Math.cos(angle) * dist,
+        y: y + Math.sin(angle) * dist - 20,
+        rotation: leaf.rotation + (Math.random() - 0.5) * 2,
+        alpha: 0,
+        duration: 0.5 + Math.random() * 0.3,
+        ease: 'power2.out',
+        onComplete: () => leaf.destroy(),
+      })
+    }
+  }
+
   // ===== 草を生成 =====
   const generateGrass = () => {
+
     const app = appRef.current
     const layer = grassLayerRef.current
     if (!app || !layer) return
@@ -297,17 +309,23 @@ function App() {
   }
 
   const drawGrassShape = (g: Graphics, x: number, y: number) => {
-    const height = 18 + Math.random() * 14
-    const width = 4 + Math.random() * 3
-    const color = Math.random() > 0.3 ? 0x4caf50 : 0x66bb6a
+    // 草を大きく・太く表示（見やすくする）
+    const height = 45 + Math.random() * 20 // 45〜65px
+    const width = 12 + Math.random() * 6 // 12〜18px
+    const color = Math.random() > 0.3 ? 0x2e7d32 : 0x388e3c // 濃い緑で視認性向上
     g.moveTo(x - width / 2, y)
     g.quadraticCurveTo(x - width / 2, y - height * 0.6, x, y - height)
     g.quadraticCurveTo(x + width / 2, y - height * 0.6, x + width / 2, y)
     g.closePath()
     g.fill({ color })
+    // 草の茎の線を追加
+    g.moveTo(x, y)
+    g.lineTo(x, y - height)
+    g.stroke({ width: 3, color: 0x1b5e20 })
     g.position.set(x, y)
     g.pivot.set(x, y)
   }
+
 
   // ===== 完成ボタン（線を踊らせる） =====
   const handleComplete = () => {
@@ -320,35 +338,121 @@ function App() {
     // 描いた線を生き物のように踊らせる
     const layer = drawingLayerRef.current
     if (!layer) return
+
+    // 線全体を1つの Container にまとめて、一体となって動かす
+    const danceContainer = new Container()
     const children = [...layer.children]
-    children.forEach((child, index) => {
+    for (const child of children) {
       if (child instanceof Graphics) {
-        const delay = index * 0.1
-        gsap.to(child, {
-          y: child.y - 20,
-          duration: 0.4,
-          delay,
-          yoyo: true,
-          repeat: -1,
-          ease: 'sine.inOut',
-        })
-        gsap.to(child, {
-          rotation: 0.2,
-          duration: 0.5,
-          delay,
-          yoyo: true,
-          repeat: -1,
-          ease: 'sine.inOut',
-        })
+        layer.removeChild(child)
+        danceContainer.addChild(child)
       }
+    }
+    layer.addChild(danceContainer)
+    danceContainerRef.current = danceContainer
+
+    // 線全体が一体となって「ウネウネ」と踊る
+    // 移動量を小さくして、塗りつぶしに見えないようにする
+    gsap.to(danceContainer, {
+      y: danceContainer.y - 10,
+      duration: 0.6,
+      yoyo: true,
+      repeat: -1,
+      ease: 'sine.inOut',
+    })
+    gsap.to(danceContainer, {
+      rotation: 0.06,
+      duration: 0.8,
+      yoyo: true,
+      repeat: -1,
+      ease: 'sine.inOut',
+    })
+    gsap.to(danceContainer, {
+      scaleX: 1.05,
+      scaleY: 1.05,
+      duration: 0.5,
+      yoyo: true,
+      repeat: -1,
+      ease: 'sine.inOut',
     })
 
     // 3秒後に草抜きモードへ
     setTimeout(() => {
       setMode('grass')
       generateGrass()
+      // 線が草を抜いていく処理を開始
+      setTimeout(() => {
+        startGrassPulling()
+      }, 500)
     }, 3000)
   }
+
+  // ===== 線が草を抜いていく処理 =====
+  const startGrassPulling = () => {
+    if (grassPullingRef.current) return
+    grassPullingRef.current = true
+
+    const danceContainer = danceContainerRef.current
+    const grassList = grassListRef.current
+    if (!danceContainer || grassList.length === 0) return
+
+    // 線の中心位置を計算
+    const bounds = danceContainer.getBounds()
+    const centerX = bounds.x + bounds.width / 2
+    const centerY = bounds.y + bounds.height / 2
+
+    // 未抜きの草を取得
+    const remaining = grassList.filter((g) => !g.pulled)
+    if (remaining.length === 0) {
+      grassPullingRef.current = false
+      return
+    }
+
+    // 線に最も近い草を選ぶ
+    let nearest = remaining[0]
+    let nearestDist = Infinity
+    for (const grass of remaining) {
+      const dist = Math.hypot(grass.x - centerX, grass.y - centerY)
+      if (dist < nearestDist) {
+        nearestDist = dist
+        nearest = grass
+      }
+    }
+
+    // 線が草の位置へ移動して草を抜く
+    const targetX = nearest.x
+    const targetY = nearest.y
+
+    // 移動中は踊りを止めて、草に向かって移動する
+    gsap.killTweensOf(danceContainer)
+    gsap.to(danceContainer, {
+      x: targetX - centerX + danceContainer.x,
+      y: targetY - centerY + danceContainer.y,
+      duration: 0.8,
+      ease: 'power2.inOut',
+      onComplete: () => {
+        // 草を抜く
+        pullGrassAt(targetX, targetY)
+        // 少し跳ねる
+        gsap.to(danceContainer, {
+          y: danceContainer.y - 15,
+          duration: 0.2,
+          yoyo: true,
+          repeat: 1,
+          ease: 'power2.out',
+          onComplete: () => {
+            // 次の草へ
+            grassPullingRef.current = false
+            setTimeout(() => {
+              startGrassPulling()
+            }, 300)
+          },
+        })
+      },
+    })
+  }
+
+
 
   // ===== クリア演出（花火） =====
   useEffect(() => {
