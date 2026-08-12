@@ -60,7 +60,9 @@ function App() {
   const tracePointsRef = useRef<{ x: number; y: number }[]>([])
   const tracedDistRef = useRef(0)
   const requiredDistRef = useRef(0)
+  const traceRadiusRef = useRef(0)
   const isTracingRef = useRef(false)
+
   const lastTracePosRef = useRef<{ x: number; y: number } | null>(null)
   const completedRef = useRef(false)
 
@@ -171,16 +173,15 @@ function App() {
 
     const checkTrace = (x: number, y: number) => {
       if (completedRef.current) return
-      const points = tracePointsRef.current
-      let found = false
-      for (const p of points) {
-        const dist = Math.hypot(p.x - x, p.y - y)
-        if (dist < 25) {
-          found = true
-          break
-        }
-      }
-      if (found) {
+      // 文字の中心からの距離で判定（文字の形全体をカバー）
+      const app = appRef.current
+      if (!app) return
+      const cx = app.screen.width / 2
+      const cy = app.screen.height / 2
+      const distFromCenter = Math.hypot(x - cx, y - cy)
+      // 文字のサイズに応じた判定半径（文字の形をカバー）
+      const radius = traceRadiusRef.current
+      if (distFromCenter <= radius) {
         // なぞった距離を加算（一文字をなぞるのに十分な距離で完了）
         const last = lastTracePosRef.current
         if (last) {
@@ -190,7 +191,7 @@ function App() {
         const required = requiredDistRef.current || 1
         const progress = Math.min(tracedDistRef.current / required, 1)
         setTraceProgress(progress)
-        // なぞり完了判定（一文字の輪郭を一周したら完了）
+        // なぞり完了判定（一文字をなぞったら完了）
         if (tracedDistRef.current >= required) {
           completedRef.current = true
           setTraceProgress(1) // ゲージを満タンにする
@@ -198,6 +199,7 @@ function App() {
         }
       }
     }
+
 
 
 
@@ -342,15 +344,19 @@ function App() {
 
     tracePointsRef.current = points
 
-    // 一文字の輪郭を一周するのに必要な距離を計算
-    // 矩形の周囲の長さ（上辺+右辺+下辺+左辺）
+    // 一文字をなぞるのに必要な距離を計算
+    // 文字の幅と高さの合計（矩形の周囲の半分）で完了するようにする
     const perimeter = 2 * (textWidth + textHeight)
-    // 一文字をなぞるのに十分な距離（周囲の約1.2倍で完了）
-    requiredDistRef.current = perimeter * 1.2
+    // 一文字をなぞるのに十分な距離（周囲の約0.5倍で完了）
+    requiredDistRef.current = perimeter * 0.5
+
+    // 文字の中心からの判定半径（文字の形全体をカバー）
+    traceRadiusRef.current = Math.max(textWidth, textHeight) * 0.6
 
     tracedDistRef.current = 0
     setTraceProgress(0)
   }
+
 
 
 
