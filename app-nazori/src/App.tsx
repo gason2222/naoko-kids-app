@@ -58,23 +58,26 @@ function App() {
   const effectLayerRef = useRef<Container | null>(null)
   const currentWordRef = useRef<WordColor>(WORDS[0])
   const tracePointsRef = useRef<{ x: number; y: number }[]>([])
-  const tracedCountRef = useRef(0)
+  const tracedDistRef = useRef(0)
+  const requiredDistRef = useRef(0)
   const isTracingRef = useRef(false)
   const lastTracePosRef = useRef<{ x: number; y: number } | null>(null)
   const completedRef = useRef(false)
+
 
   // 現在の文字を同期
   useEffect(() => {
     currentWordRef.current = WORDS[currentIndex]
     setIsTraced(false)
     setTraceProgress(0)
-    tracedCountRef.current = 0
+    tracedDistRef.current = 0
     completedRef.current = false
     // 文字を再描画
     if (appRef.current) {
       drawWord()
     }
   }, [currentIndex])
+
 
   // ===== Pixi.js 初期化 =====
   useEffect(() => {
@@ -178,18 +181,24 @@ function App() {
         }
       }
       if (found) {
-        tracedCountRef.current++
-        // ゲージ表示用の進捗を更新（2/3で完了）
-        const progress = Math.min(tracedCountRef.current / points.length, 1)
+        // なぞった距離を加算（一文字をなぞるのに十分な距離で完了）
+        const last = lastTracePosRef.current
+        if (last) {
+          tracedDistRef.current += Math.hypot(x - last.x, y - last.y)
+        }
+        // ゲージ表示用の進捗を更新
+        const required = requiredDistRef.current || 1
+        const progress = Math.min(tracedDistRef.current / required, 1)
         setTraceProgress(progress)
-        // なぞり完了判定（2/3 = 約67%で完了）
-        if (tracedCountRef.current >= points.length * 0.67) {
+        // なぞり完了判定（一文字の輪郭を一周したら完了）
+        if (tracedDistRef.current >= required) {
           completedRef.current = true
           setTraceProgress(1) // ゲージを満タンにする
           onTraceComplete()
         }
       }
     }
+
 
 
     const onTraceComplete = () => {
@@ -332,9 +341,17 @@ function App() {
     }
 
     tracePointsRef.current = points
-    tracedCountRef.current = 0
+
+    // 一文字の輪郭を一周するのに必要な距離を計算
+    // 矩形の周囲の長さ（上辺+右辺+下辺+左辺）
+    const perimeter = 2 * (textWidth + textHeight)
+    // 一文字をなぞるのに十分な距離（周囲の約1.2倍で完了）
+    requiredDistRef.current = perimeter * 1.2
+
+    tracedDistRef.current = 0
     setTraceProgress(0)
   }
+
 
 
   // ===== 次の文字へ =====
