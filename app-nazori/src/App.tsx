@@ -58,13 +58,20 @@ function App() {
   const effectLayerRef = useRef<Container | null>(null)
   const currentWordRef = useRef<WordColor>(WORDS[0])
   const tracePointsRef = useRef<{ x: number; y: number }[]>([])
-  const tracedDistRef = useRef(0)
-  const requiredDistRef = useRef(0)
-  const traceRadiusRef = useRef(0)
+  const filledCellsRef = useRef<Set<number>>(new Set())
+  const totalCellsRef = useRef(0)
+  const gridInfoRef = useRef<{ cx: number; cy: number; radius: number; gridSize: number; cellSize: number }>({
+    cx: 0,
+    cy: 0,
+    radius: 0,
+    gridSize: 8,
+    cellSize: 0,
+  })
   const isTracingRef = useRef(false)
 
   const lastTracePosRef = useRef<{ x: number; y: number } | null>(null)
   const completedRef = useRef(false)
+
 
 
   // 現在の文字を同期
@@ -72,13 +79,14 @@ function App() {
     currentWordRef.current = WORDS[currentIndex]
     setIsTraced(false)
     setTraceProgress(0)
-    tracedDistRef.current = 0
+    filledCellsRef.current = new Set()
     completedRef.current = false
     // 文字を再描画
     if (appRef.current) {
       drawWord()
     }
   }, [currentIndex])
+
 
 
   // ===== Pixi.js 初期化 =====
@@ -173,32 +181,33 @@ function App() {
 
     const checkTrace = (x: number, y: number) => {
       if (completedRef.current) return
-      // 文字の中心からの距離で判定（文字の形全体をカバー）
-      const app = appRef.current
-      if (!app) return
-      const cx = app.screen.width / 2
-      const cy = app.screen.height / 2
-      const distFromCenter = Math.hypot(x - cx, y - cy)
-      // 文字のサイズに応じた判定半径（文字の形をカバー）
-      const radius = traceRadiusRef.current
-      if (distFromCenter <= radius) {
-        // なぞった距離を加算（一文字をなぞるのに十分な距離で完了）
-        const last = lastTracePosRef.current
-        if (last) {
-          tracedDistRef.current += Math.hypot(x - last.x, y - last.y)
-        }
-        // ゲージ表示用の進捗を更新
-        const required = requiredDistRef.current || 1
-        const progress = Math.min(tracedDistRef.current / required, 1)
+      const info = gridInfoRef.current
+      if (info.cellSize <= 0) return
+
+      // 塗りつぶし領域（文字の中心を基準にした円）内かどうか
+      const distFromCenter = Math.hypot(x - info.cx, y - info.cy)
+      if (distFromCenter > info.radius) return
+
+      // なぞった点がどのセルに含まれるかを判定
+      const col = Math.floor((x - (info.cx - info.radius)) / info.cellSize)
+      const row = Math.floor((y - (info.cy - info.radius)) / info.cellSize)
+      if (col < 0 || col >= info.gridSize || row < 0 || row >= info.gridSize) return
+
+      const cellIndex = row * info.gridSize + col
+      if (!filledCellsRef.current.has(cellIndex)) {
+        filledCellsRef.current.add(cellIndex)
+        // ゲージ表示用の進捗を更新（塗りつぶし率）
+        const progress = Math.min(filledCellsRef.current.size / totalCellsRef.current, 1)
         setTraceProgress(progress)
-        // なぞり完了判定（一文字をなぞったら完了）
-        if (tracedDistRef.current >= required) {
+        // なぞり完了判定（50%以上塗りつぶしたら完了）
+        if (filledCellsRef.current.size >= totalCellsRef.current * 0.5) {
           completedRef.current = true
           setTraceProgress(1) // ゲージを満タンにする
           onTraceComplete()
         }
       }
     }
+
 
 
 
@@ -344,18 +353,23 @@ function App() {
 
     tracePointsRef.current = points
 
-    // 一文字をなぞるのに必要な距離を計算
-    // 文字の幅と高さの合計（矩形の周囲の半分）で完了するようにする
-    const perimeter = 2 * (textWidth + textHeight)
-    // 一文字をなぞるのに十分な距離（周囲の約0.5倍で完了）
-    requiredDistRef.current = perimeter * 0.5
-
-    // 文字の中心からの判定半径（文字の形全体をカバー）
-    traceRadiusRef.current = Math.max(textWidth, textHeight) * 0.6
-
-    tracedDistRef.current = 0
+    // 塗りつぶし領域のグリッド情報を設定
+    // 文字の大きさの 1/2 程度の円領域を塗りつぶしたらクリア
+    const gridSize = 8
+    const radius = Math.max(textWidth, textHeight) * 0.5
+    const cellSize = (radius * 2) / gridSize
+    gridInfoRef.current = {
+      cx,
+      cy,
+      radius,
+      gridSize,
+      cellSize,
+    }
+    totalCellsRef.current = gridSize * gridSize
+    filledCellsRef.current = new Set()
     setTraceProgress(0)
   }
+
 
 
 
