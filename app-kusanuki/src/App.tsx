@@ -573,9 +573,10 @@ function App() {
         {mode === 'dance' && <span className="mode-text">💃 おどってるよ！</span>}
         {mode === 'grass' && (
           <span className="mode-text">
-            🌿 くさをぬこう！ ({grassCount}/{totalGrass})
+            🌿 のこり {Math.max(totalGrass - grassCount, 0)} ほん！
           </span>
         )}
+
       </div>
 
       {/* 完成ボタン */}
