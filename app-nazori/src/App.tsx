@@ -198,10 +198,34 @@ function App() {
       setTimeout(() => playTone(659, 0.2, 'sine', 0.4), 150)
       setTimeout(() => playTone(784, 0.3, 'sine', 0.4), 300)
 
-      // 背景を色で包むエフェクト
+      // なぞり完了後は色名全体を表示
       const word = currentWordRef.current
+      const wordLayer = wordLayerRef.current
+      if (wordLayer) {
+        wordLayer.removeChildren()
+        for (const child of wordLayer.children) {
+          child.destroy()
+        }
+        const app = appRef.current
+        if (app) {
+          const style = new TextStyle({
+            fontFamily: 'Hiragino Kaku Gothic ProN, Hiragino Sans, Meiryo, sans-serif',
+            fontSize: Math.min(app.screen.width, app.screen.height) * 0.3,
+            fontWeight: 'bold',
+            fill: '#ffffff',
+            stroke: { color: '#000000', width: 3 },
+          })
+          const text = new Text({ text: word.colorName, style })
+          text.anchor.set(0.5)
+          text.position.set(app.screen.width / 2, app.screen.height / 2)
+          wordLayer.addChild(text)
+        }
+      }
+
+      // 背景を色で包むエフェクト
       const layer = effectLayerRef.current
       if (!layer) return
+
 
       // 波紋エフェクト
       for (let i = 0; i < 3; i++) {
@@ -262,15 +286,18 @@ function App() {
     const width = app.screen.width
     const height = app.screen.height
 
-    // 大きな文字を表示
+    // なぞる対象は一文字目のみ（小さなスマホでもなぞりやすいように）
+    const traceChar = word.word[0]
+
+    // 一文字目を大きく表示
     const style = new TextStyle({
       fontFamily: 'Hiragino Kaku Gothic ProN, Hiragino Sans, Meiryo, sans-serif',
-      fontSize: Math.min(width, height) * 0.25,
+      fontSize: Math.min(width, height) * 0.45,
       fontWeight: 'bold',
       fill: '#cccccc',
       stroke: { color: '#aaaaaa', width: 2 },
     })
-    const text = new Text({ text: word.word, style })
+    const text = new Text({ text: traceChar, style })
     text.anchor.set(0.5)
     text.position.set(width / 2, height / 2)
     wordLayer.addChild(text)
@@ -308,6 +335,7 @@ function App() {
     tracedCountRef.current = 0
     setTraceProgress(0)
   }
+
 
   // ===== 次の文字へ =====
   const handleNext = () => {
