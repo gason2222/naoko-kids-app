@@ -49,6 +49,10 @@ jobs:
           cp -r app-kusanuki/dist dist_github/app-kusanuki
           cp -r app-nazori/dist dist_github/app-nazori
           cp index.html dist_github/index.html
+          cp manifest.json dist_github/manifest.json
+          cp sw.js dist_github/sw.js
+          cp favicon.svg dist_github/favicon.svg
+
 
 
       - name: Setup Pages
