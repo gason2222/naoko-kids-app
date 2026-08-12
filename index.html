@@ -11,121 +11,338 @@
       box-sizing: border-box;
     }
     body {
-      font-family: 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', Meiryo, sans-serif;
-      background: linear-gradient(135deg, #a8e6cf 0%, #dcedc1 50%, #ffd3b6 100%);
+      font-family: 'Hiragino Kaku Gothic ProN', 'Hiragino Sans', Meiryo, 'Yu Gothic', sans-serif;
+      background: linear-gradient(180deg, #87ceeb 0%, #b8e6f5 30%, #fff8e1 100%);
       min-height: 100vh;
       display: flex;
       flex-direction: column;
       align-items: center;
-      padding: 40px 20px;
+      padding: 30px 16px 60px;
+      overflow-x: hidden;
     }
-    h1 {
-      font-size: 2.2rem;
-      color: #2d6a4f;
+
+    /* 雲の装飾 */
+    .cloud {
+      position: fixed;
+      background: rgba(255, 255, 255, 0.8);
+      border-radius: 50px;
+      animation: float 8s ease-in-out infinite;
+      z-index: 0;
+      pointer-events: none;
+    }
+    .cloud-1 {
+      width: 120px;
+      height: 40px;
+      top: 60px;
+      left: 5%;
+      animation-delay: 0s;
+    }
+    .cloud-2 {
+      width: 80px;
+      height: 28px;
+      top: 120px;
+      right: 8%;
+      animation-delay: 2s;
+    }
+    .cloud-3 {
+      width: 100px;
+      height: 34px;
+      top: 200px;
+      left: 15%;
+      animation-delay: 4s;
+    }
+    @keyframes float {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-15px); }
+    }
+
+    /* タイトル */
+    .header {
+      text-align: center;
+      margin-bottom: 36px;
+      position: relative;
+      z-index: 1;
+    }
+    .title {
+      font-size: 2.6rem;
+      font-weight: 900;
+      color: #ff6b6b;
+      text-shadow: 3px 3px 0 #fff, 6px 6px 0 rgba(255, 107, 107, 0.2);
+      letter-spacing: 0.05em;
       margin-bottom: 8px;
-      text-shadow: 2px 2px 0 rgba(255,255,255,0.6);
+      animation: bounce 2s ease-in-out infinite;
+    }
+    @keyframes bounce {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-8px); }
     }
     .subtitle {
-      font-size: 1.1rem;
-      color: #52796f;
-      margin-bottom: 40px;
+      font-size: 1.2rem;
+      color: #5c7cfa;
+      font-weight: bold;
+      text-shadow: 1px 1px 0 #fff;
     }
+
+    /* アプリカードグリッド */
     .app-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-      gap: 24px;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 28px;
       width: 100%;
-      max-width: 1000px;
+      max-width: 1100px;
+      position: relative;
+      z-index: 1;
     }
+
     .app-card {
-      background: rgba(255,255,255,0.9);
-      border-radius: 20px;
-      padding: 28px;
+      background: #fff;
+      border-radius: 28px;
+      padding: 24px 20px 28px;
       text-decoration: none;
       color: #333;
-      box-shadow: 0 8px 24px rgba(0,0,0,0.12);
-      transition: transform 0.2s ease, box-shadow 0.2s ease;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.12);
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
       display: flex;
       flex-direction: column;
       align-items: center;
       text-align: center;
+      border: 4px solid transparent;
+      position: relative;
+      overflow: hidden;
     }
     .app-card:hover {
-      transform: translateY(-6px) scale(1.02);
-      box-shadow: 0 12px 32px rgba(0,0,0,0.18);
+      transform: translateY(-10px) scale(1.03) rotate(-1deg);
+      box-shadow: 0 16px 40px rgba(0, 0, 0, 0.2);
     }
+    .app-card:active {
+      transform: scale(0.97);
+    }
+
+    /* 各カードのテーマカラー */
+    .card-kusanuki {
+      background: linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%);
+      border-color: #66bb6a;
+    }
+    .card-nazori {
+      background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
+      border-color: #42a5f5;
+    }
+    .card-tsunagu {
+      background: linear-gradient(135deg, #fce4ec 0%, #f8bbd0 100%);
+      border-color: #ec407a;
+    }
+    .card-garden {
+      background: linear-gradient(135deg, #f1f8e9 0%, #dcedc8 100%);
+      border-color: #9ccc65;
+    }
+    .card-dance {
+      background: linear-gradient(135deg, #fff3e0 0%, #ffe0b2 100%);
+      border-color: #ffa726;
+    }
+
+    /* アプリアイコン（SVGイラスト） */
     .app-icon {
-      font-size: 3.5rem;
+      width: 140px;
+      height: 140px;
       margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(255, 255, 255, 0.7);
+      border-radius: 50%;
+      box-shadow: 0 6px 16px rgba(0, 0, 0, 0.1);
+      transition: transform 0.3s ease;
     }
+    .app-card:hover .app-icon {
+      transform: scale(1.1) rotate(5deg);
+    }
+    .app-icon svg {
+      width: 100px;
+      height: 100px;
+    }
+
     .app-name {
-      font-size: 1.3rem;
-      font-weight: bold;
-      color: #2d6a4f;
+      font-size: 1.35rem;
+      font-weight: 900;
+      color: #333;
       margin-bottom: 8px;
+      letter-spacing: 0.03em;
     }
     .app-desc {
       font-size: 0.95rem;
-      color: #666;
-      line-height: 1.6;
+      color: #555;
+      line-height: 1.7;
+      margin-bottom: 14px;
     }
     .app-status {
-      margin-top: 12px;
-      font-size: 0.8rem;
-      padding: 4px 12px;
-      border-radius: 20px;
+      font-size: 0.85rem;
+      padding: 6px 18px;
+      border-radius: 30px;
       font-weight: bold;
+      letter-spacing: 0.05em;
     }
     .status-ready {
-      background: #d8f3dc;
-      color: #2d6a4f;
+      background: #ffd54f;
+      color: #5d4037;
+      box-shadow: 0 3px 8px rgba(255, 213, 79, 0.4);
     }
     .status-soon {
-      background: #eee;
-      color: #999;
+      background: #e0e0e0;
+      color: #757575;
+    }
+
+    /* フッター */
+    .footer {
+      margin-top: 40px;
+      font-size: 0.9rem;
+      color: #78909c;
+      position: relative;
+      z-index: 1;
+    }
+
+    /* スマホ対応 */
+    @media (max-width: 600px) {
+      .title {
+        font-size: 2rem;
+      }
+      .app-grid {
+        grid-template-columns: 1fr;
+        gap: 20px;
+      }
+      .app-icon {
+        width: 120px;
+        height: 120px;
+      }
+      .app-icon svg {
+        width: 85px;
+        height: 85px;
+      }
     }
   </style>
 </head>
 <body>
-  <h1>🎨 こどもアプリ集</h1>
-  <p class="subtitle">タップしてあそぼう！</p>
+  <!-- 雲の装飾 -->
+  <div class="cloud cloud-1"></div>
+  <div class="cloud cloud-2"></div>
+  <div class="cloud cloud-3"></div>
+
+  <div class="header">
+    <h1 class="title">🎨 こどもアプリ集</h1>
+    <p class="subtitle">タップして あそぼう！</p>
+  </div>
 
   <div class="app-grid">
-    <a class="app-card" href="./app-kusanuki/">
-      <div class="app-icon">🌿</div>
+    <!-- アプリ1: 草抜き＆お絵かきモンスター -->
+    <a class="app-card card-kusanuki" href="./app-kusanuki/">
+      <div class="app-icon">
+        <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+          <!-- 草 -->
+          <path d="M20 80 Q18 55 25 40" stroke="#4caf50" stroke-width="5" fill="none" stroke-linecap="round"/>
+          <path d="M30 80 Q28 50 38 35" stroke="#66bb6a" stroke-width="5" fill="none" stroke-linecap="round"/>
+          <path d="M40 80 Q42 55 50 42" stroke="#4caf50" stroke-width="5" fill="none" stroke-linecap="round"/>
+          <!-- モンスターの目 -->
+          <circle cx="62" cy="45" r="10" fill="#fff" stroke="#333" stroke-width="3"/>
+          <circle cx="78" cy="45" r="10" fill="#fff" stroke="#333" stroke-width="3"/>
+          <circle cx="64" cy="45" r="5" fill="#333"/>
+          <circle cx="80" cy="45" r="5" fill="#333"/>
+          <!-- モンスターの口 -->
+          <path d="M60 62 Q70 72 80 62" stroke="#333" stroke-width="3" fill="none" stroke-linecap="round"/>
+          <!-- モンスターの体 -->
+          <ellipse cx="70" cy="60" rx="25" ry="18" fill="#ffd54f" stroke="#333" stroke-width="3"/>
+          <!-- 手足 -->
+          <path d="M50 68 L42 80" stroke="#333" stroke-width="4" stroke-linecap="round"/>
+          <path d="M90 68 L98 80" stroke="#333" stroke-width="4" stroke-linecap="round"/>
+        </svg>
+      </div>
       <div class="app-name">草抜き＆お絵かきモンスター</div>
       <div class="app-desc">描いた線が生き物になって、草を一緒に抜いてくれるよ！</div>
       <div class="app-status status-ready">あそべる！</div>
     </a>
 
-    <a class="app-card" href="./app-nazori/">
-      <div class="app-icon">🌈</div>
+    <!-- アプリ2: なぞって変身！色のふしぎ文字 -->
+    <a class="app-card card-nazori" href="./app-nazori/">
+      <div class="app-icon">
+        <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+          <!-- 虹 -->
+          <path d="M20 70 A30 30 0 0 1 80 70" stroke="#ff5252" stroke-width="6" fill="none" stroke-linecap="round"/>
+          <path d="M25 70 A25 25 0 0 1 75 70" stroke="#ffd740" stroke-width="6" fill="none" stroke-linecap="round"/>
+          <path d="M30 70 A20 20 0 0 1 70 70" stroke="#448aff" stroke-width="6" fill="none" stroke-linecap="round"/>
+          <path d="M35 70 A15 15 0 0 1 65 70" stroke="#69f0ae" stroke-width="6" fill="none" stroke-linecap="round"/>
+          <!-- 文字「あ」 -->
+          <text x="50" y="55" text-anchor="middle" font-size="38" font-weight="bold" fill="#5c7cfa" font-family="sans-serif">あ</text>
+          <!-- 星 -->
+          <path d="M85 20 L88 28 L96 28 L90 33 L92 41 L85 36 L78 41 L80 33 L74 28 L82 28 Z" fill="#ffd740"/>
+        </svg>
+      </div>
       <div class="app-name">なぞって変身！色のふしぎ文字</div>
       <div class="app-desc">文字をなぞると、画面が色でいっぱいになるよ！</div>
       <div class="app-status status-ready">あそべる！</div>
     </a>
 
-
-    <a class="app-card" href="./app-tsunagu/">
-      <div class="app-icon">💬</div>
+    <!-- アプリ3: コミュニケーション補助 -->
+    <a class="app-card card-tsunagu" href="./app-tsunagu/">
+      <div class="app-icon">
+        <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+          <!-- ハート -->
+          <path d="M50 75 C20 55 15 35 30 25 C40 18 50 25 50 35 C50 25 60 18 70 25 C85 35 80 55 50 75 Z" fill="#ec407a" stroke="#c2185b" stroke-width="2"/>
+          <!-- 吹き出し -->
+          <path d="M20 20 L45 20 L45 40 L20 40 Z" fill="#fff" stroke="#ec407a" stroke-width="3" rx="5"/>
+          <path d="M25 40 L20 50 L32 40" fill="#fff" stroke="#ec407a" stroke-width="3"/>
+          <!-- 吹き出しの中の文字 -->
+          <text x="32" y="35" text-anchor="middle" font-size="14" font-weight="bold" fill="#ec407a" font-family="sans-serif">こん</text>
+        </svg>
+      </div>
       <div class="app-name">コミュニケーション補助</div>
       <div class="app-desc">色とタップで、きもちを伝えられるよ！</div>
       <div class="app-status status-soon">じゅんびちゅう</div>
     </a>
 
-    <a class="app-card" href="./app-garden/">
-      <div class="app-icon">🌱</div>
+    <!-- アプリ4: 文字のめばえガーデン -->
+    <a class="app-card card-garden" href="./app-garden/">
+      <div class="app-icon">
+        <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+          <!-- 土 -->
+          <ellipse cx="50" cy="80" rx="40" ry="12" fill="#8d6e63"/>
+          <!-- 芽 -->
+          <path d="M50 80 Q48 60 42 50" stroke="#66bb6a" stroke-width="4" fill="none" stroke-linecap="round"/>
+          <path d="M50 80 Q52 60 58 50" stroke="#66bb6a" stroke-width="4" fill="none" stroke-linecap="round"/>
+          <!-- 葉っぱ -->
+          <ellipse cx="40" cy="48" rx="10" ry="6" fill="#81c784" transform="rotate(-30 40 48)"/>
+          <ellipse cx="60" cy="48" rx="10" ry="6" fill="#81c784" transform="rotate(30 60 48)"/>
+          <!-- 花 -->
+          <circle cx="50" cy="38" r="6" fill="#ffd54f"/>
+          <circle cx="42" cy="32" r="5" fill="#ff8a80"/>
+          <circle cx="58" cy="32" r="5" fill="#ff8a80"/>
+          <circle cx="42" cy="44" r="5" fill="#ff8a80"/>
+          <circle cx="58" cy="44" r="5" fill="#ff8a80"/>
+          <!-- 文字「あ」 -->
+          <text x="50" y="72" text-anchor="middle" font-size="16" font-weight="bold" fill="#4e342e" font-family="sans-serif">あ</text>
+        </svg>
+      </div>
       <div class="app-name">文字のめばえガーデン</div>
       <div class="app-desc">文字を辿ると、お花がニョキニョキ生えてくるよ！</div>
       <div class="app-status status-soon">じゅんびちゅう</div>
     </a>
 
-    <a class="app-card" href="./app-dance/">
-      <div class="app-icon">💃</div>
+    <!-- アプリ5: うごく！お絵かきダンススタジオ -->
+    <a class="app-card card-dance" href="./app-dance/">
+      <div class="app-icon">
+        <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+          <!-- 音符 -->
+          <text x="30" y="45" text-anchor="middle" font-size="40" fill="#ff7043" font-family="sans-serif">♪</text>
+          <text x="65" y="35" text-anchor="middle" font-size="30" fill="#ffa726" font-family="sans-serif">♫</text>
+          <!-- 踊る線 -->
+          <path d="M15 70 Q30 55 45 70 Q60 85 75 70 Q85 60 90 65" stroke="#5c7cfa" stroke-width="5" fill="none" stroke-linecap="round"/>
+          <!-- 星 -->
+          <path d="M80 75 L82 80 L87 80 L83 83 L84 88 L80 85 L76 88 L77 83 L73 80 L78 80 Z" fill="#ffd740"/>
+        </svg>
+      </div>
       <div class="app-name">うごく！お絵かきダンススタジオ</div>
       <div class="app-desc">描いた線が音楽に合わせて踊りだすよ！</div>
       <div class="app-status status-soon">じゅんびちゅう</div>
     </a>
   </div>
+
+  <div class="footer">© こどもアプリ集</div>
 </body>
 </html>
