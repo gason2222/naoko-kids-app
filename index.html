@@ -3,7 +3,15 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#ff6b6b" />
+  <link rel="manifest" href="./manifest.json" />
+  <link rel="icon" href="./favicon.svg" type="image/svg+xml" />
+  <link rel="apple-touch-icon" href="./favicon.svg" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+  <meta name="apple-mobile-web-app-title" content="こどもアプリ" />
   <title>naoko-kids-app | こどもアプリ集</title>
+
   <style>
     * {
       margin: 0;
@@ -191,6 +199,86 @@
       color: #757575;
     }
 
+    /* ホームに追加ボタン */
+    .install-btn {
+      margin-top: 24px;
+      padding: 16px 36px;
+      font-size: 1.2rem;
+      font-weight: 900;
+      color: #fff;
+      background: linear-gradient(135deg, #ff6b6b 0%, #ff8a65 100%);
+      border: none;
+      border-radius: 50px;
+      cursor: pointer;
+      box-shadow: 0 6px 20px rgba(255, 107, 107, 0.4);
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+      position: relative;
+      z-index: 1;
+      letter-spacing: 0.05em;
+    }
+    .install-btn:hover {
+      transform: translateY(-3px) scale(1.05);
+      box-shadow: 0 10px 28px rgba(255, 107, 107, 0.5);
+    }
+    .install-btn:active {
+      transform: scale(0.95);
+    }
+    .install-btn.hidden {
+      display: none;
+    }
+
+    /* iOS用の案内モーダル */
+    .ios-guide {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.6);
+      z-index: 100;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+    .ios-guide.show {
+      display: flex;
+    }
+    .ios-guide-box {
+      background: #fff;
+      border-radius: 24px;
+      padding: 28px 24px;
+      max-width: 340px;
+      width: 100%;
+      text-align: center;
+      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+    }
+    .ios-guide-box h3 {
+      font-size: 1.3rem;
+      color: #333;
+      margin-bottom: 16px;
+    }
+    .ios-guide-box p {
+      font-size: 1rem;
+      color: #555;
+      line-height: 1.8;
+      margin-bottom: 20px;
+    }
+    .ios-guide-box .guide-icon {
+      font-size: 2.5rem;
+      margin-bottom: 12px;
+    }
+    .ios-guide-close {
+      padding: 12px 32px;
+      font-size: 1rem;
+      font-weight: bold;
+      color: #fff;
+      background: #5c7cfa;
+      border: none;
+      border-radius: 30px;
+      cursor: pointer;
+    }
+
     /* フッター */
     .footer {
       margin-top: 40px;
@@ -199,6 +287,7 @@
       position: relative;
       z-index: 1;
     }
+
 
     /* スマホ対応 */
     @media (max-width: 600px) {
@@ -343,6 +432,80 @@
     </a>
   </div>
 
+  <!-- ホームに追加ボタン -->
+  <button id="installBtn" class="install-btn hidden">📱 ホームに追加</button>
+
+  <!-- iOS用の案内モーダル -->
+  <div id="iosGuide" class="ios-guide">
+    <div class="ios-guide-box">
+      <div class="guide-icon">📱</div>
+      <h3>ホームに追加する方法</h3>
+      <p>
+        ① 下の「共有」ボタンをタップ<br />
+        ② 「ホーム画面に追加」をタップ<br />
+        ③ 「追加」をタップして完了！
+      </p>
+      <button class="ios-guide-close" onclick="closeIosGuide()">わかった！</button>
+    </div>
+  </div>
+
   <div class="footer">© こどもアプリ集</div>
+
+  <script>
+    // ===== PWA: ホームに追加 =====
+    let deferredPrompt = null
+
+    // Service Worker を登録
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('./sw.js').catch((err) => {
+          console.log('Service Worker 登録エラー:', err)
+        })
+      })
+    }
+
+    // iOS かどうかを判定
+    const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent)
+
+    // beforeinstallprompt イベント（Android / Chrome）
+    window.addEventListener('beforeinstallprompt', (e) => {
+      e.preventDefault()
+      deferredPrompt = e
+      document.getElementById('installBtn').classList.remove('hidden')
+    })
+
+    // インストール済みの場合はボタンを非表示
+    window.addEventListener('appinstalled', () => {
+      document.getElementById('installBtn').classList.add('hidden')
+      deferredPrompt = null
+    })
+
+    // ホームに追加ボタンのクリック
+    document.getElementById('installBtn').addEventListener('click', async () => {
+      if (deferredPrompt) {
+        // Android / Chrome の場合
+        deferredPrompt.prompt()
+        const { outcome } = await deferredPrompt.userChoice
+        if (outcome === 'accepted') {
+          document.getElementById('installBtn').classList.add('hidden')
+        }
+        deferredPrompt = null
+      } else if (isIOS) {
+        // iOS の場合：案内モーダルを表示
+        document.getElementById('iosGuide').classList.add('show')
+      }
+    })
+
+    // iOS 案内モーダルを閉じる
+    function closeIosGuide() {
+      document.getElementById('iosGuide').classList.remove('show')
+    }
+
+    // iOS の場合は常にボタンを表示（beforeinstallprompt が使えないため）
+    if (isIOS) {
+      document.getElementById('installBtn').classList.remove('hidden')
+    }
+  </script>
 </body>
 </html>
+

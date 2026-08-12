@@ -1,0 +1,17 @@
+{
+  "name": "こどもアプリ集",
+  "short_name": "こどもアプリ",
+  "description": "子ども向けの楽しいアプリ集",
+  "start_url": "./",
+  "display": "standalone",
+  "background_color": "#87ceeb",
+  "theme_color": "#ff6b6b",
+  "icons": [
+    {
+      "src": "./favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ]
+}
