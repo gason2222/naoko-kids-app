@@ -39,11 +39,10 @@ const GARDEN_CHARS: GardenChar[] = [
   { char: 'お', color: 0xab47bc, bgColor: 0xf3e5f5 },
 ]
 
-// ===== 文字の形を点列で表現する（Text テクスチャから自動生成） =====
-// Pixi.js の Text オブジェクトを描画し、そのテクスチャのピクセルデータから
+// ===== 文字の形を点列で表現する（Canvas API で直接生成） =====
+// HTML5 Canvas API で文字を描画し、そのピクセルデータから
 // 文字の形に沿った点列を生成する
 function generateCharPoints(
-  app: Application,
   char: string,
   cx: number,
   cy: number,
@@ -51,57 +50,46 @@ function generateCharPoints(
 ): { x: number; y: number }[] {
   const points: { x: number; y: number }[] = []
 
-  // Text オブジェクトを作成
-  const style = new TextStyle({
-    fontFamily: 'Hiragino Kaku Gothic ProN, Hiragino Sans, Meiryo, sans-serif',
-    fontSize: size,
-    fontWeight: 'bold',
-    fill: '#ffffff',
-  })
-  const text = new Text({ text: char, style })
-  text.anchor.set(0.5)
+  // 文字の描画サイズ（余白を追加）
+  const pad = 20
+  const canvasSize = size + pad * 2
 
-  // テクスチャを生成してピクセルデータを取得
-  const texture = app.renderer.generateTexture(text)
-  const source = texture.source
-  const texWidth = source.width
-  const texHeight = source.height
+  // Canvas を作成して文字を描画
+  const canvas = document.createElement('canvas')
+  canvas.width = canvasSize
+  canvas.height = canvasSize
+  const ctx = canvas.getContext('2d')
+  if (!ctx) return points
 
-  // 文字の中心位置（テクスチャの中心）
-  const offsetX = cx - texWidth / 2
-  const offsetY = cy - texHeight / 2
+  ctx.font = `bold ${size}px "Hiragino Kaku Gothic ProN", "Hiragino Sans", Meiryo, sans-serif`
+  ctx.textAlign = 'center'
+  ctx.textBaseline = 'middle'
+  ctx.fillStyle = '#ffffff'
+  ctx.fillText(char, canvasSize / 2, canvasSize / 2)
 
-  // ピクセルデータを取得（ImageBitmap を canvas に描画して読み取る）
-  const resource = source.resource as ImageBitmap | HTMLCanvasElement | null
-  if (resource) {
-    const canvas = document.createElement('canvas')
-    canvas.width = texWidth
-    canvas.height = texHeight
-    const ctx = canvas.getContext('2d')
-    if (ctx) {
-      ctx.drawImage(resource, 0, 0)
-      const imageData = ctx.getImageData(0, 0, texWidth, texHeight)
-      const pixels = imageData.data
+  // ピクセルデータを取得
+  const imageData = ctx.getImageData(0, 0, canvasSize, canvasSize)
+  const pixels = imageData.data
 
-      // ピクセルデータから不透明な部分を抽出
-      const step = 6 // 点の間隔（ピクセル）
-      for (let y = 0; y < texHeight; y += step) {
-        for (let x = 0; x < texWidth; x += step) {
-          const idx = (y * texWidth + x) * 4
-          const alpha = pixels[idx + 3]
-          if (alpha > 128) {
-            points.push({ x: offsetX + x, y: offsetY + y })
-          }
-        }
+  // 文字の中心位置（キャンバスの中心）
+  const offsetX = cx - canvasSize / 2
+  const offsetY = cy - canvasSize / 2
+
+  // ピクセルデータから不透明な部分を抽出
+  const step = 6 // 点の間隔（ピクセル）
+  for (let y = 0; y < canvasSize; y += step) {
+    for (let x = 0; x < canvasSize; x += step) {
+      const idx = (y * canvasSize + x) * 4
+      const alpha = pixels[idx + 3]
+      if (alpha > 128) {
+        points.push({ x: offsetX + x, y: offsetY + y })
       }
     }
   }
 
-  // テクスチャを破棄
-  texture.destroy(true)
-
   return points
 }
+
 
 
 
@@ -464,8 +452,9 @@ function App() {
 
 
     // 文字の形に沿った点列を生成（なぞり判定用）
-    const points = generateCharPoints(app, word.char, cx, cy, charSize)
+    const points = generateCharPoints(word.char, cx, cy, charSize)
     charPointsRef.current = points
+
 
     // 土の表現（下部に土の帯）
     const soil = new Graphics()
