@@ -39,69 +39,71 @@ const GARDEN_CHARS: GardenChar[] = [
   { char: 'お', color: 0xab47bc, bgColor: 0xf3e5f5 },
 ]
 
-// 文字の形を点列で表現する（簡易的な文字の輪郭）
-// 各文字のストロークを点で表現
-function getCharPoints(char: string, cx: number, cy: number, size: number): { x: number; y: number }[] {
+// ===== 文字の形を点列で表現する（Text テクスチャから自動生成） =====
+// Pixi.js の Text オブジェクトを描画し、そのテクスチャのピクセルデータから
+// 文字の形に沿った点列を生成する
+function generateCharPoints(
+  app: Application,
+  char: string,
+  cx: number,
+  cy: number,
+  size: number,
+): { x: number; y: number }[] {
   const points: { x: number; y: number }[] = []
-  const s = size // 文字の大きさ
-  const step = 8 // 点の間隔
 
-  switch (char) {
-    case 'あ':
-      // 横棒
-      for (let x = -s * 0.4; x <= s * 0.4; x += step) points.push({ x: cx + x, y: cy - s * 0.35 })
-      // 縦棒（左）
-      for (let y = -s * 0.35; y <= s * 0.4; y += step) points.push({ x: cx - s * 0.3, y: cy + y })
-      // 縦棒（右）
-      for (let y = -s * 0.35; y <= s * 0.4; y += step) points.push({ x: cx + s * 0.3, y: cy + y })
-      // 中央の曲線（「あ」の丸い部分）
-      for (let a = 0; a <= Math.PI; a += 0.2) {
-        points.push({ x: cx + Math.cos(a) * s * 0.25, y: cy + Math.sin(a) * s * 0.25 })
+  // Text オブジェクトを作成
+  const style = new TextStyle({
+    fontFamily: 'Hiragino Kaku Gothic ProN, Hiragino Sans, Meiryo, sans-serif',
+    fontSize: size,
+    fontWeight: 'bold',
+    fill: '#ffffff',
+  })
+  const text = new Text({ text: char, style })
+  text.anchor.set(0.5)
+
+  // テクスチャを生成してピクセルデータを取得
+  const texture = app.renderer.generateTexture(text)
+  const source = texture.source
+  const texWidth = source.width
+  const texHeight = source.height
+
+  // 文字の中心位置（テクスチャの中心）
+  const offsetX = cx - texWidth / 2
+  const offsetY = cy - texHeight / 2
+
+  // ピクセルデータを取得（ImageBitmap を canvas に描画して読み取る）
+  const resource = source.resource as ImageBitmap | HTMLCanvasElement | null
+  if (resource) {
+    const canvas = document.createElement('canvas')
+    canvas.width = texWidth
+    canvas.height = texHeight
+    const ctx = canvas.getContext('2d')
+    if (ctx) {
+      ctx.drawImage(resource, 0, 0)
+      const imageData = ctx.getImageData(0, 0, texWidth, texHeight)
+      const pixels = imageData.data
+
+      // ピクセルデータから不透明な部分を抽出
+      const step = 6 // 点の間隔（ピクセル）
+      for (let y = 0; y < texHeight; y += step) {
+        for (let x = 0; x < texWidth; x += step) {
+          const idx = (y * texWidth + x) * 4
+          const alpha = pixels[idx + 3]
+          if (alpha > 128) {
+            points.push({ x: offsetX + x, y: offsetY + y })
+          }
+        }
       }
-      break
-    case 'い':
-      // 左の縦棒（少し曲がる）
-      for (let y = -s * 0.4; y <= s * 0.4; y += step) {
-        points.push({ x: cx - s * 0.25 + Math.sin((y / s) * 2) * s * 0.05, y: cy + y })
-      }
-      // 右の縦棒（少し曲がる）
-      for (let y = -s * 0.4; y <= s * 0.4; y += step) {
-        points.push({ x: cx + s * 0.25 + Math.sin((y / s) * 2) * s * 0.05, y: cy + y })
-      }
-      break
-    case 'う':
-      // 上の横棒
-      for (let x = -s * 0.35; x <= s * 0.35; x += step) points.push({ x: cx + x, y: cy - s * 0.35 })
-      // 右の縦棒（下に曲がる）
-      for (let y = -s * 0.35; y <= s * 0.4; y += step) {
-        points.push({ x: cx + s * 0.3 - Math.sin((y / s) * 2) * s * 0.1, y: cy + y })
-      }
-      break
-    case 'え':
-      // 上の横棒
-      for (let x = -s * 0.35; x <= s * 0.35; x += step) points.push({ x: cx + x, y: cy - s * 0.35 })
-      // 左の縦棒
-      for (let y = -s * 0.35; y <= s * 0.4; y += step) points.push({ x: cx - s * 0.3, y: cy + y })
-      // 中央の横棒
-      for (let x = -s * 0.3; x <= s * 0.3; x += step) points.push({ x: cx + x, y: cy + s * 0.05 })
-      // 右の縦棒
-      for (let y = -s * 0.35; y <= s * 0.4; y += step) points.push({ x: cx + s * 0.3, y: cy + y })
-      break
-    case 'お':
-      // 上の横棒
-      for (let x = -s * 0.35; x <= s * 0.35; x += step) points.push({ x: cx + x, y: cy - s * 0.35 })
-      // 左の縦棒
-      for (let y = -s * 0.35; y <= s * 0.4; y += step) points.push({ x: cx - s * 0.3, y: cy + y })
-      // 右の縦棒
-      for (let y = -s * 0.35; y <= s * 0.4; y += step) points.push({ x: cx + s * 0.3, y: cy + y })
-      // 中央の丸
-      for (let a = 0; a <= Math.PI * 2; a += 0.3) {
-        points.push({ x: cx + Math.cos(a) * s * 0.2, y: cy + Math.sin(a) * s * 0.2 })
-      }
-      break
+    }
   }
+
+  // テクスチャを破棄
+  texture.destroy(true)
+
   return points
 }
+
+
 
 function App() {
   const containerRef = useRef<HTMLDivElement>(null)
@@ -447,17 +449,23 @@ function App() {
     // 文字の大きさ
     const charSize = Math.min(width, height) * 0.35
 
-    // 文字の形を点列で生成
-    const points = getCharPoints(word.char, cx, cy, charSize)
-    charPointsRef.current = points
+    // 実際の文字を半透明で表示（なぞるガイド）
+    const guideStyle = new TextStyle({
+      fontFamily: 'Hiragino Kaku Gothic ProN, Hiragino Sans, Meiryo, sans-serif',
+      fontSize: charSize,
+      fontWeight: 'bold',
+      fill: '#999999',
+    })
+    const guideText = new Text({ text: word.char, style: guideStyle })
+    guideText.anchor.set(0.5)
+    guideText.position.set(cx, cy)
+    guideText.alpha = 0.4
+    wordLayer.addChild(guideText)
 
-    // 点線で文字を描画（なぞるガイド）
-    const guide = new Graphics()
-    for (const p of points) {
-      guide.circle(p.x, p.y, 4)
-      guide.fill({ color: 0xcccccc, alpha: 0.6 })
-    }
-    wordLayer.addChild(guide)
+
+    // 文字の形に沿った点列を生成（なぞり判定用）
+    const points = generateCharPoints(app, word.char, cx, cy, charSize)
+    charPointsRef.current = points
 
     // 土の表現（下部に土の帯）
     const soil = new Graphics()
@@ -465,6 +473,7 @@ function App() {
     soil.fill({ color: 0x8d6e63, alpha: 0.3 })
     wordLayer.addChild(soil)
   }
+
 
   // ===== 次の文字へ =====
   const handleNext = () => {
