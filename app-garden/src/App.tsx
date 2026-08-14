@@ -39,56 +39,71 @@ const GARDEN_CHARS: GardenChar[] = [
   { char: 'お', color: 0xab47bc, bgColor: 0xf3e5f5 },
 ]
 
-// ===== 文字の形を点列で表現する（Canvas API で直接生成） =====
-// HTML5 Canvas API で文字を描画し、そのピクセルデータから
-// 文字の形に沿った点列を生成する
-function generateCharPoints(
-  char: string,
-  cx: number,
-  cy: number,
-  size: number,
-): { x: number; y: number }[] {
+// ===== 文字の形を点列で表現する（手動定義のストローク） =====
+// 各文字のストローク（線）を点列で定義する
+// ガイド表示は実際のフォントで行い、この点列はなぞり判定にのみ使用する
+function getCharPoints(char: string, cx: number, cy: number, size: number): { x: number; y: number }[] {
   const points: { x: number; y: number }[] = []
+  const s = size // 文字の大きさ
+  const step = 8 // 点の間隔
 
-  // 文字の描画サイズ（余白を追加）
-  const pad = 20
-  const canvasSize = size + pad * 2
-
-  // Canvas を作成して文字を描画
-  const canvas = document.createElement('canvas')
-  canvas.width = canvasSize
-  canvas.height = canvasSize
-  const ctx = canvas.getContext('2d')
-  if (!ctx) return points
-
-  ctx.font = `bold ${size}px "Hiragino Kaku Gothic ProN", "Hiragino Sans", Meiryo, sans-serif`
-  ctx.textAlign = 'center'
-  ctx.textBaseline = 'middle'
-  ctx.fillStyle = '#ffffff'
-  ctx.fillText(char, canvasSize / 2, canvasSize / 2)
-
-  // ピクセルデータを取得
-  const imageData = ctx.getImageData(0, 0, canvasSize, canvasSize)
-  const pixels = imageData.data
-
-  // 文字の中心位置（キャンバスの中心）
-  const offsetX = cx - canvasSize / 2
-  const offsetY = cy - canvasSize / 2
-
-  // ピクセルデータから不透明な部分を抽出
-  const step = 6 // 点の間隔（ピクセル）
-  for (let y = 0; y < canvasSize; y += step) {
-    for (let x = 0; x < canvasSize; x += step) {
-      const idx = (y * canvasSize + x) * 4
-      const alpha = pixels[idx + 3]
-      if (alpha > 128) {
-        points.push({ x: offsetX + x, y: offsetY + y })
+  switch (char) {
+    case 'あ':
+      // 横棒
+      for (let x = -s * 0.4; x <= s * 0.4; x += step) points.push({ x: cx + x, y: cy - s * 0.35 })
+      // 縦棒（左）
+      for (let y = -s * 0.35; y <= s * 0.4; y += step) points.push({ x: cx - s * 0.3, y: cy + y })
+      // 縦棒（右）
+      for (let y = -s * 0.35; y <= s * 0.4; y += step) points.push({ x: cx + s * 0.3, y: cy + y })
+      // 中央の曲線（「あ」の丸い部分）
+      for (let a = 0; a <= Math.PI; a += 0.2) {
+        points.push({ x: cx + Math.cos(a) * s * 0.25, y: cy + Math.sin(a) * s * 0.25 })
       }
-    }
+      break
+    case 'い':
+      // 左の縦棒（少し曲がる）
+      for (let y = -s * 0.4; y <= s * 0.4; y += step) {
+        points.push({ x: cx - s * 0.25 + Math.sin((y / s) * 2) * s * 0.05, y: cy + y })
+      }
+      // 右の縦棒（少し曲がる）
+      for (let y = -s * 0.4; y <= s * 0.4; y += step) {
+        points.push({ x: cx + s * 0.25 + Math.sin((y / s) * 2) * s * 0.05, y: cy + y })
+      }
+      break
+    case 'う':
+      // 上の横棒
+      for (let x = -s * 0.35; x <= s * 0.35; x += step) points.push({ x: cx + x, y: cy - s * 0.35 })
+      // 右の縦棒（下に曲がる）
+      for (let y = -s * 0.35; y <= s * 0.4; y += step) {
+        points.push({ x: cx + s * 0.3 - Math.sin((y / s) * 2) * s * 0.1, y: cy + y })
+      }
+      break
+    case 'え':
+      // 上の横棒
+      for (let x = -s * 0.35; x <= s * 0.35; x += step) points.push({ x: cx + x, y: cy - s * 0.35 })
+      // 左の縦棒
+      for (let y = -s * 0.35; y <= s * 0.4; y += step) points.push({ x: cx - s * 0.3, y: cy + y })
+      // 中央の横棒
+      for (let x = -s * 0.3; x <= s * 0.3; x += step) points.push({ x: cx + x, y: cy + s * 0.05 })
+      // 右の縦棒
+      for (let y = -s * 0.35; y <= s * 0.4; y += step) points.push({ x: cx + s * 0.3, y: cy + y })
+      break
+    case 'お':
+      // 上の横棒
+      for (let x = -s * 0.35; x <= s * 0.35; x += step) points.push({ x: cx + x, y: cy - s * 0.35 })
+      // 左の縦棒
+      for (let y = -s * 0.35; y <= s * 0.4; y += step) points.push({ x: cx - s * 0.3, y: cy + y })
+      // 右の縦棒
+      for (let y = -s * 0.35; y <= s * 0.4; y += step) points.push({ x: cx + s * 0.3, y: cy + y })
+      // 中央の丸
+      for (let a = 0; a <= Math.PI * 2; a += 0.3) {
+        points.push({ x: cx + Math.cos(a) * s * 0.2, y: cy + Math.sin(a) * s * 0.2 })
+      }
+      break
   }
-
   return points
 }
+
 
 
 
@@ -452,8 +467,9 @@ function App() {
 
 
     // 文字の形に沿った点列を生成（なぞり判定用）
-    const points = generateCharPoints(word.char, cx, cy, charSize)
+    const points = getCharPoints(word.char, cx, cy, charSize)
     charPointsRef.current = points
+
 
 
     // 土の表現（下部に土の帯）
