@@ -120,6 +120,7 @@ function App() {
   const traceLayerRef = useRef<Container | null>(null)
   const plantLayerRef = useRef<Container | null>(null)
   const effectLayerRef = useRef<Container | null>(null)
+  const traceGraphicsRef = useRef<Graphics | null>(null)
   const currentCharRef = useRef<GardenChar>(GARDEN_CHARS[0])
   const charPointsRef = useRef<{ x: number; y: number }[]>([])
   const tracedPointsRef = useRef<Set<number>>(new Set())
@@ -127,6 +128,7 @@ function App() {
   const lastTracePosRef = useRef<{ x: number; y: number } | null>(null)
   const completedRef = useRef(false)
   const plantsRef = useRef<{ x: number; y: number; graphics: Graphics; pulled: boolean }[]>([])
+
 
   // 現在の文字を同期
   useEffect(() => {
@@ -305,6 +307,8 @@ function App() {
         // なぞった場所に芽を生やす
         const p = points[foundIndex]
         growPlant(p.x, p.y)
+        // なぞった軌跡（線）を描画
+        drawTraceLine(p.x, p.y)
         // ゲージ表示用の進捗を更新
         const progress = Math.min(tracedPointsRef.current.size / points.length, 1)
         setTraceProgress(progress)
@@ -317,7 +321,17 @@ function App() {
       }
     }
 
+    // なぞった軌跡（線）を描画
+    const drawTraceLine = (x: number, y: number) => {
+      const traceGraphics = traceGraphicsRef.current
+      if (!traceGraphics) return
+      const color = currentCharRef.current.color
+      traceGraphics.circle(x, y, 6)
+      traceGraphics.fill({ color, alpha: 0.6 })
+    }
+
     // 芽を生やす
+
     const growPlant = (x: number, y: number) => {
       const layer = plantLayerRef.current
       if (!layer) return
@@ -470,7 +484,10 @@ function App() {
     const points = getCharPoints(word.char, cx, cy, charSize)
     charPointsRef.current = points
 
-
+    // なぞった軌跡を描画する Graphics を作成
+    const traceGraphics = new Graphics()
+    traceLayer.addChild(traceGraphics)
+    traceGraphicsRef.current = traceGraphics
 
     // 土の表現（下部に土の帯）
     const soil = new Graphics()
@@ -478,6 +495,7 @@ function App() {
     soil.fill({ color: 0x8d6e63, alpha: 0.3 })
     wordLayer.addChild(soil)
   }
+
 
 
   // ===== 次の文字へ =====
