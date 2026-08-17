@@ -49,13 +49,6 @@ jobs:
           npm ci
           npm run build
 
-      # アプリ4 (app-garden) のビルド
-      - name: Build app-garden
-        run: |
-          cd app-garden
-          npm ci
-          npm run build
-
       # ディレクトリ構造を整えて公開フォルダ (dist_github) を作成
       - name: Prepare public directory
         run: |
@@ -63,11 +56,11 @@ jobs:
           cp -r app-kusanuki/dist dist_github/app-kusanuki
           cp -r app-nazori/dist dist_github/app-nazori
           cp -r app-tsunagu/dist dist_github/app-tsunagu
-          cp -r app-garden/dist dist_github/app-garden
           cp index.html dist_github/index.html
           cp manifest.json dist_github/manifest.json
           cp sw.js dist_github/sw.js
           cp favicon.svg dist_github/favicon.svg
+
 
 
 
